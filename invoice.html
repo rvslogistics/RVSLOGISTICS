@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice Template – RVS Logistics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+```
+:root {
+  --gold: #B8892A;
+  --gold-light: #D4A94A;
+  --gold-pale: #F5EDD6;
+  --ink: #1A1410;
+  --ink-mid: #4A3F30;
+  --ink-soft: #8A7A65;
+  --paper: #FDFAF4;
+  --rule: #D9CDB8;
+  --edit-bg: #FFFDF5;
+  --edit-border: #D4A94A66;
+  --edit-focus: #B8892A;
+}
+
+@media print {
+  body { background: white !important; padding: 0 !important; }
+  .toolbar, .add-row-btn, .del-btn { display: none !important; }
+  .invoice-wrap { box-shadow: none !important; max-width: 100% !important; }
+  [contenteditable] { border: none !important; background: transparent !important; outline: none !important; }
+  [contenteditable]:empty::before { display: none !important; }
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #EDE8DE;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 60px;
+  color: var(--ink);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.toolbar-left {
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar-left .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; } 50% { opacity:0.4; }
+}
+.toolbar-right { display: flex; gap: 10px; }
+.btn {
+  padding: 9px 22px;
+  border: none;
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--gold); color: white; }
+.btn-primary:hover { background: var(--gold-light); }
+.btn-outline { background: transparent; color: var(--ink-mid); border: 1.5px solid var(--rule); }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-danger { background: transparent; color: #c0392b; border: 1.5px solid #e0baba; font-size: 11px; padding: 7px 16px; }
+.btn-danger:hover { background: #fdf0f0; }
+
+/* ── Invoice wrap ── */
+.invoice-wrap {
+  width: 100%;
+  max-width: 860px;
+  background: var(--paper);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.top-bar {
+  height: 6px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 60%, #E8C870 100%);
+}
+
+/* ── Editable style ── */
+[contenteditable] {
+  outline: none;
+  border-radius: 2px;
+  transition: background 0.15s, box-shadow 0.15s;
+  min-width: 20px;
+  display: inline-block;
+}
+[contenteditable]:hover {
+  background: var(--edit-bg);
+  box-shadow: 0 0 0 2px var(--edit-border);
+}
+[contenteditable]:focus {
+  background: #fffef9;
+  box-shadow: 0 0 0 2px var(--edit-focus);
+}
+[contenteditable]:empty::before {
+  content: attr(data-ph);
+  color: #cbbfa8;
+  font-style: italic;
+  pointer-events: none;
+}
+/* editable that spans full width */
+.block-edit {
+  display: block;
+  width: 100%;
+}
+
+/* ── Header ── */
+.header {
+  padding: 36px 48px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1.5px solid var(--rule);
+  gap: 24px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--rule);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 3px 10px;
+  margin-bottom: 10px;
+}
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.brand-address {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  line-height: 1.8;
+}
+
+.invoice-meta { text-align: right; min-width: 200px; }
+.invoice-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.meta-row {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.meta-row .meta-val {
+  color: var(--ink);
+  font-weight: 500;
+  text-align: right;
+  min-width: 100px;
+}
+
+/* ── Bill To ── */
+.bill-section {
+  padding: 26px 48px 22px;
+  border-bottom: 1.5px solid var(--rule);
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.bill-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.bill-details {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.8;
+}
+
+/* ── Tax Rate ── */
+.tax-setting {
+  padding: 10px 48px;
+  background: var(--gold-pale);
+  border-bottom: 1.5px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+.tax-setting label { font-weight: 500; }
+.tax-input {
+  width: 60px;
+  padding: 3px 8px;
+  border: 1.5px solid var(--rule);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: white;
+  text-align: center;
+}
+.tax-input:focus { outline: none; border-color: var(--gold); }
+.tax-setting .tax-note { color: var(--ink-soft); font-size: 11px; }
+
+/* ── Table ── */
+.table-wrap { padding: 0 48px 0; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--gold-pale); }
+thead th {
+  padding: 12px 12px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  text-align: left;
+}
+thead th:not(:first-child) { text-align: right; }
+tbody tr { border-bottom: 1px solid var(--rule); }
+tbody tr:hover { background: #FAF6EE; }
+tbody td { padding: 11px 12px; font-size: 13px; color: var(--ink); vertical-align: middle; }
+tbody td:not(:first-child):not(:last-child) { text-align: right; }
+td.amount-col { text-align: right; font-weight: 600; }
+td.del-col { text-align: center; width: 36px; }
+
+.del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cbbfa8;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 2px;
+  transition: color 0.15s, background 0.15s;
+}
+.del-btn:hover { color: #c0392b; background: #fdf0f0; }
+
+.add-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 10px;
+  background: none;
+  border: 1.5px dashed var(--rule);
+  width: 100%;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.add-row-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
+
+/* ── Footer grid ── */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  border-top: 1.5px solid var(--rule);
+  margin: 0 48px;
+}
+.terms-block {
+  padding: 22px 32px 22px 0;
+  border-right: 1px solid var(--rule);
+}
+.terms-title {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.terms-text { font-size: 11.5px; color: var(--ink-soft); line-height: 1.8; list-style: none; }
+.terms-text li { margin-bottom: 4px; }
+.terms-text li::before { content: "—  "; color: var(--gold-light); }
+
+.totals-block { padding: 22px 0 22px 28px; }
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-mid);
+  border-bottom: 1px dashed var(--rule);
+}
+.totals-row:last-of-type { border-bottom: none; }
+.totals-row.subtotal { font-weight: 600; color: var(--ink); }
+.totals-row.grand {
+  background: var(--gold);
+  color: white;
+  padding: 10px 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: none;
+}
+.totals-row.received { color: var(--ink-soft); font-size: 12px; margin-top: 4px; }
+
+/* ── Words band ── */
+.words-band {
+  background: var(--gold-pale);
+  border-top: 1.5px solid var(--rule);
+  padding: 14px 48px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.words-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.words-value {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-mid);
+  font-family: 'Playfair Display', serif;
+}
+
+.bottom-bar { height: 4px; background: linear-gradient(90deg, #E8C870 0%, var(--gold) 100%); }
+
+@media (max-width: 640px) {
+  .header { flex-direction: column; padding: 24px; }
+  .invoice-meta { text-align: left; }
+  .meta-row { justify-content: flex-start; }
+  .bill-section, .table-wrap { padding-left: 24px; padding-right: 24px; }
+  .tax-setting { padding: 10px 24px; }
+  .footer-grid { grid-template-columns: 1fr; margin: 0 24px; }
+  .terms-block { border-right: none; border-bottom: 1px solid var(--rule); padding-right: 0; }
+  .totals-block { padding-left: 0; }
+  .words-band { padding: 14px 24px; }
+}
+```
+
+  </style>
+</head>
+<body>
+
+<!-- ── Toolbar ── -->
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <span class="dot"></span>
+    Click any field to edit &nbsp;·&nbsp; Rows auto-calculate
+  </div>
+  <div class="toolbar-right">
+    <button class="btn btn-outline" id="resetBtn">↺ Reset</button>
+    <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+</div>
+
+<!-- ── Invoice ── -->
+
+<div class="invoice-wrap">
+  <div class="top-bar"></div>
+
+  <!-- Header -->
+
+  <div class="header">
+    <div class="brand-block">
+      <div class="badge">
+        <span contenteditable="true" data-ph="Document Type" data-key="docType">Bill of Supply</span>
+        &nbsp;·&nbsp;
+        <span contenteditable="true" data-ph="Original / Duplicate" data-key="docCopy">Original</span>
+      </div>
+      <div class="brand-name" contenteditable="true" data-ph="Company Name" data-key="brandName">RVS Logistics</div>
+      <div class="brand-address">
+        <span contenteditable="true" class="block-edit" data-ph="Street address" data-key="addr1">Plot No. 7, Flat No. 1, Mothi Nagar, Hyderabad</span>
+        <span contenteditable="true" class="block-edit" data-ph="City, State" data-key="addr2">Rangareddy, Telangana</span>
+        <strong>Mobile:</strong>
+        <span contenteditable="true" data-ph="Phone" data-key="phone">9666972222</span>
+        &nbsp;|&nbsp;
+        <strong>GSTIN:</strong>
+        <span contenteditable="true" data-ph="GSTIN" data-key="gstin">36BEFPR9409L1ZV</span>
+      </div>
+    </div>
+    <div class="invoice-meta">
+      <div class="invoice-title">Invoice</div>
+      <div class="meta-row">
+        Invoice No.
+        <span contenteditable="true" class="meta-val" data-ph="#" data-key="invoiceNo">#1</span>
+      </div>
+      <div class="meta-row">
+        Invoice Date
+        <span contenteditable="true" class="meta-val" data-ph="DD/MM/YYYY" data-key="invoiceDate">11 / 03 / 2026</span>
+      </div>
+      <div class="meta-row">
+        Due Date
+        <span contenteditable="true" class="meta-val" data-ph="DD/MM/YYYY" data-key="dueDate">18 / 03 / 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bill To -->
+
+  <div class="bill-section">
+    <div class="section-label">Bill To</div>
+    <div class="bill-name" contenteditable="true" data-ph="Client Company Name" data-key="clientName">Sri Vijetha Logistics</div>
+    <div class="bill-details">
+      <span contenteditable="true" class="block-edit" data-ph="Client Address Line 1" data-key="clientAddr1">FLAT 53-11c, Coonoor Towers, Rajeev Gandhi Nagar Road,</span>
+      <span contenteditable="true" class="block-edit" data-ph="Client Address Line 2" data-key="clientAddr2">Maytas Hill County, Hyderabad, Medchal Malkajgiri, Telangana – 500090</span>
+      <strong>GSTIN:</strong>
+      <span contenteditable="true" data-ph="Client GSTIN" data-key="clientGstin">36ATZPB8044P3ZQ</span>
+      &nbsp;|&nbsp;
+      <strong>PAN:</strong>
+      <span contenteditable="true" data-ph="PAN" data-key="clientPan">ATZPB8044P</span>
+      &nbsp;|&nbsp;
+      <strong>Place of Supply:</strong>
+      <span contenteditable="true" data-ph="State" data-key="placeOfSupply">Telangana</span>
+    </div>
+  </div>
+
+  <!-- Tax Rate Setting -->
+
+  <div class="tax-setting">
+    <label for="taxRate">GST Rate:</label>
+    <input type="number" id="taxRate" class="tax-input" value="18" min="0" max="100" step="0.1" oninput="recalc()"/>
+    <span>%</span>
+    <span class="tax-note">— Change the rate; totals update automatically</span>
+  </div>
+
+  <!-- Services Table -->
+
+  <div class="table-wrap">
+    <table id="servicesTable">
+      <thead>
+        <tr>
+          <th style="width:40%">Services</th>
+          <th style="width:18%">Qty.</th>
+          <th style="width:15%">Rate (₹)</th>
+          <th style="width:18%">Amount (₹)</th>
+          <th style="width:9%" class="no-print"></th>
+        </tr>
+      </thead>
+      <tbody id="serviceRows">
+        <!-- rows injected by JS -->
+      </tbody>
+    </table>
+    <button class="add-row-btn no-print" onclick="addRow()">＋ &nbsp; Add Service Row</button>
+  </div>
+
+  <!-- Footer -->
+
+  <div class="footer-grid">
+    <div class="terms-block">
+      <div class="terms-title">Terms &amp; Conditions</div>
+      <ul class="terms-text" id="termsList">
+        <li contenteditable="true" data-ph="Add a term…">Goods once sold will not be taken back or exchanged.</li>
+        <li contenteditable="true" data-ph="Add a term…">All disputes are subject to Hyderabad jurisdiction only.</li>
+      </ul>
+    </div>
+    <div class="totals-block">
+      <div class="totals-row subtotal">
+        <span>Subtotal</span>
+        <span id="subtotalDisplay">₹ 0</span>
+      </div>
+      <div class="totals-row">
+        <span>GST (<span id="gstRateLabel">18</span>%)</span>
+        <span id="gstDisplay">₹ 0</span>
+      </div>
+      <div class="totals-row grand">
+        <span>Total Amount</span>
+        <span id="totalDisplay">₹ 0</span>
+      </div>
+      <div class="totals-row received">
+        <span>Received Amount</span>
+        <span contenteditable="true" data-ph="₹ 0" data-key="received">₹ 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amount in words -->
+
+  <div class="words-band">
+    <span class="words-label">Total in Words</span>
+    <span class="words-value" id="wordsDisplay">Zero Rupees Only</span>
+  </div>
+
+  <div class="bottom-bar"></div>
+</div>
+
+<script>
+  /* ── Default row data ── */
+  const defaultRows = [
+    { service: 'HPCL Secunderabad',  qty: '80 KLR',  rate: 800 },
+    { service: 'BPCL Cherlapalli',   qty: '40 KLR',  rate: 800 },
+    { service: 'IOCL Malkapur',      qty: '40 KLR',  rate: 787.5 },
+    { service: 'BPCL Borkedhi',      qty: '80 KLR',  rate: 900 },
+  ];
+
+  let rowId = 0;
+
+  function parseQty(str) {
+    // extract numeric part from strings like "80 KLR", "40", etc.
+    const match = String(str).match(/[\d.]+/);
+    return match ? parseFloat(match[0]) : 0;
+  }
+
+  function makeRow(data = {}) {
+    const id = ++rowId;
+    const tr = document.createElement('tr');
+    tr.dataset.id = id;
+    tr.innerHTML = `
+      <td>
+        <span contenteditable="true" class="svc-name" data-ph="Service description">${data.service || ''}</span>
+      </td>
+      <td style="text-align:right">
+        <span contenteditable="true" class="svc-qty" data-ph="e.g. 80 KLR" oninput="recalc()">${data.qty || ''}</span>
+      </td>
+      <td style="text-align:right">
+        <span contenteditable="true" class="svc-rate" data-ph="0.00" oninput="recalc()">${data.rate !== undefined ? data.rate : ''}</span>
+      </td>
+      <td class="amount-col"><span class="svc-amount">0</span></td>
+      <td class="del-col no-print">
+        <button class="del-btn" title="Remove row" onclick="delRow(${id})">×</button>
+      </td>
+    `;
+    return tr;
+  }
+
+  function addRow(data) {
+    const tr = makeRow(data);
+    document.getElementById('serviceRows').appendChild(tr);
+    recalc();
+  }
+
+  function delRow(id) {
+    const tr = document.querySelector(`tr[data-id="${id}"]`);
+    if (tr) { tr.remove(); recalc(); }
+  }
+
+  function recalc() {
+    const gstRate = parseFloat(document.getElementById('taxRate').value) || 0;
+    document.getElementById('gstRateLabel').textContent = gstRate;
+
+    let subtotal = 0;
+    document.querySelectorAll('#serviceRows tr').forEach(tr => {
+      const qty  = parseQty(tr.querySelector('.svc-qty')?.textContent || '0');
+      const rate = parseFloat(tr.querySelector('.svc-rate')?.textContent || '0') || 0;
+      const amt  = qty * rate;
+      const amtEl = tr.querySelector('.svc-amount');
+      if (amtEl) amtEl.textContent = fmt(amt);
+      subtotal += amt;
+    });
+
+    const gst   = subtotal * gstRate / 100;
+    const total = subtotal + gst;
+
+    document.getElementById('subtotalDisplay').textContent = '₹ ' + fmt(subtotal);
+    document.getElementById('gstDisplay').textContent      = '₹ ' + fmt(gst);
+    document.getElementById('totalDisplay').textContent    = '₹ ' + fmt(total);
+    document.getElementById('wordsDisplay').textContent    = numberToWords(Math.round(total)) + ' Rupees Only';
+  }
+
+  function fmt(n) {
+    return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  /* ── Number to Indian words ── */
+  function numberToWords(n) {
+    if (n === 0) return 'Zero';
+    const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+                   'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
+                   'Seventeen','Eighteen','Nineteen'];
+    const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+    function two(n) {
+      if (n < 20) return ones[n];
+      return tens[Math.floor(n/10)] + (n%10 ? ' ' + ones[n%10] : '');
+    }
+    function three(n) {
+      if (n < 100) return two(n);
+      return ones[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' ' + two(n%100) : '');
+    }
+
+    let result = '';
+    const cr   = Math.floor(n / 10000000); n %= 10000000;
+    const lakh = Math.floor(n / 100000);   n %= 100000;
+    const th   = Math.floor(n / 1000);     n %= 1000;
+    const rem  = n;
+
+    if (cr)   result += three(cr)   + ' Crore ';
+    if (lakh) result += two(lakh)   + ' Lakh ';
+    if (th)   result += three(th)   + ' Thousand ';
+    if (rem)  result += three(rem);
+
+    return result.trim();
+  }
+
+  /* ── LocalStorage save/restore ── */
+  function saveState() {
+    const fields = {};
+    document.querySelectorAll('[data-key]').forEach(el => {
+      fields[el.dataset.key] = el.textContent;
+    });
+
+    const rows = [];
+    document.querySelectorAll('#serviceRows tr').forEach(tr => {
+      rows.push({
+        service: tr.querySelector('.svc-name')?.textContent || '',
+        qty:     tr.querySelector('.svc-qty')?.textContent  || '',
+        rate:    tr.querySelector('.svc-rate')?.textContent || '',
+      });
+    });
+
+    const terms = [];
+    document.querySelectorAll('#termsList li').forEach(li => {
+      terms.push(li.textContent);
+    });
+
+    localStorage.setItem('rvs_invoice', JSON.stringify({ fields, rows, terms, gst: document.getElementById('taxRate').value }));
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem('rvs_invoice');
+    if (!raw) { loadDefaults(); return; }
+    try {
+      const state = JSON.parse(raw);
+      if (state.fields) {
+        Object.entries(state.fields).forEach(([k, v]) => {
+          const el = document.querySelector(`[data-key="${k}"]`);
+          if (el) el.textContent = v;
+        });
+      }
+      if (state.gst) document.getElementById('taxRate').value = state.gst;
+      if (state.rows?.length) {
+        state.rows.forEach(r => addRow(r));
+      } else {
+        loadDefaults();
+      }
+      if (state.terms?.length) {
+        const list = document.getElementById('termsList');
+        list.innerHTML = '';
+        state.terms.forEach(t => {
+          const li = document.createElement('li');
+          li.contentEditable = true;
+          li.dataset.ph = 'Add a term…';
+          li.textContent = t;
+          list.appendChild(li);
+        });
+      }
+    } catch(e) { loadDefaults(); }
+  }
+
+  function loadDefaults() {
+    defaultRows.forEach(r => addRow(r));
+  }
+
+  function resetAll() {
+    if (!confirm('Reset all fields to default values?')) return;
+    localStorage.removeItem('rvs_invoice');
+    location.reload();
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+  // Auto-save on any input/edit
+  document.addEventListener('input', saveState);
+  document.addEventListener('blur', saveState, true);
+
+  // Init
+  loadState();
+  recalc();
+</script>
+
+</body>
+</html>
